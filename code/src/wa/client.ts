@@ -30,6 +30,9 @@ export async function initWhatsAppClient(): Promise<void> {
   client.on('qr', (qr) => {
     logger.info('QR Code received. Scan with WhatsApp mobile app:');
     qrcode.generate(qr, { small: true });
+    
+    // Store QR code for web display
+    global.qrCode = qr;
   });
 
   client.on('ready', () => {
@@ -65,11 +68,19 @@ async function handleMessage(message: Message): Promise<void> {
     return;
   }
 
+  // Skip messages sent by the bot itself
+  if (message.fromMe) {
+    return;
+  }
+
   const chatId = message.from;
   const messageText = message.body.toLowerCase().trim();
+  
+  logger.info(`Received message from ${chatId}: ${message.body.substring(0, 50)}...`);
 
   // Check if this is a first contact
   if (!isChatSeen(chatId)) {
+    logger.info(`First contact from ${chatId}, sending welcome message`);
     const language = detectLanguage(message.body);
     const aboutText = await getAboutText(language);
     
@@ -79,7 +90,8 @@ async function handleMessage(message: Message): Promise<void> {
   }
 
   // Handle commands
-  if (messageText === 'about' || messageText === 'عن') {
+  if (messageText === 'about' || messageText === 'عن' || messageText === 'من نحن') {
+    logger.info(`Command detected: about`);
     const language = detectLanguage(message.body);
     const aboutText = await getAboutText(language);
     await sendMessage(message, aboutText);
@@ -88,16 +100,44 @@ async function handleMessage(message: Message): Promise<void> {
 
   if (messageText === 'projects' || messageText === 'services' || 
       messageText === 'المشاريع' || messageText === 'الخدمات') {
+    logger.info(`Command detected: projects/services`);
     const language = detectLanguage(message.body);
     const aboutText = await getAboutText(language);
     await sendMessage(message, aboutText);
     return;
   }
 
+  // Handle help commands
+  if (messageText === 'help' || messageText === 'مساعدة' || messageText === 'مساعده') {
+    logger.info(`Command detected: help`);
+    const language = detectLanguage(message.body);
+    const helpText = language === 'ar'
+      ? `مرحباً! أنا مساعدك في عائلة الوظائف مصر.
+
+الأوامر المتاحة:
+• "about" أو "عن" - معلومات عن الشركة
+• "projects" أو "المشاريع" - خدماتنا
+• "help" أو "مساعدة" - هذه الرسالة
+
+يمكنك أيضاً طرح أي سؤال وسأحاول مساعدتك!`
+      : `Hello! I'm your assistant at Family Jobs Egypt.
+
+Available commands:
+• "about" - Company information
+• "projects" or "services" - Our services
+• "help" - This message
+
+You can also ask any question and I'll try to help!`;
+    await sendMessage(message, helpText);
+    return;
+  }
+
   // RAG-based response
   try {
+    logger.info(`Processing RAG query: ${message.body.substring(0, 50)}...`);
     const language = detectLanguage(message.body);
     const response = await searchSimilarChunks(message.body, language);
+    logger.info(`RAG response generated (${response.length} chars)`);
     await sendMessage(message, response);
   } catch (error) {
     logger.error('Error generating RAG response:', error);
@@ -111,9 +151,17 @@ async function handleMessage(message: Message): Promise<void> {
 
 async function sendMessage(message: Message, text: string): Promise<void> {
   try {
+    if (!text || text.trim().length === 0) {
+      logger.warn('Attempted to send empty message');
+      return;
+    }
+    
+    logger.info(`Sending message to ${message.from} (${text.length} chars)`);
+    
     // Split long messages (>4096 chars)
     if (text.length > 4096) {
       const chunks = splitMessage(text);
+      logger.info(`Splitting message into ${chunks.length} chunks`);
       for (const chunk of chunks) {
         await message.reply(chunk);
         // Small delay between chunks
@@ -122,8 +170,10 @@ async function sendMessage(message: Message, text: string): Promise<void> {
     } else {
       await message.reply(text);
     }
+    logger.info('Message sent successfully');
   } catch (error) {
     logger.error('Error sending message:', error);
+    throw error; // Re-throw to see the error in the caller
   }
 }
 

@@ -1,4 +1,7 @@
-const franc = require('franc-min');
+import * as francModule from 'franc-min';
+
+// Handle different import styles for franc-min
+const franc = (francModule as any).default || francModule;
 
 /**
  * Detect if text is Arabic or English
@@ -17,11 +20,18 @@ export function detectLanguage(text: string): 'en' | 'ar' {
   }
 
   // Use franc-min for other languages, but default to English if uncertain
-  const detected = franc(text);
-  
-  // If franc detects Arabic, return Arabic
-  if (detected === 'arb') {
-    return 'ar';
+  try {
+    if (typeof franc === 'function') {
+      const detected = franc(text);
+      
+      // If franc detects Arabic, return Arabic
+      if (detected === 'arb') {
+        return 'ar';
+      }
+    }
+  } catch (error) {
+    // If franc fails, default to English
+    return 'en';
   }
 
   // Default to English for all other cases

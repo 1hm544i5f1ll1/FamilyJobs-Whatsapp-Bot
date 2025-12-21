@@ -25,6 +25,16 @@ const authenticate = (req: express.Request, res: express.Response, next: express
 // Apply authentication to all admin routes
 router.use(authenticate);
 
+// Get QR code for WhatsApp Web
+router.get('/qr', (_req, res) => {
+  const qrCode = (global as any).qrCode;
+  if (qrCode) {
+    res.json({ qr: qrCode });
+  } else {
+    res.status(404).json({ error: 'QR code not available' });
+  }
+});
+
 // Get system status
 router.get('/status', (_req, res) => {
   const client = getClient();
@@ -137,10 +147,51 @@ router.post('/test-message', async (req, res) => {
       return res.status(500).json({ error: 'WhatsApp client not ready' });
     }
     
-    const chatId = phoneNumber.includes('@c.us') ? phoneNumber : `${phoneNumber}@c.us`;
-    await client.sendMessage(chatId, message);
+    // Format phone number: remove spaces, dashes, parentheses, and ensure it starts with country code
+    let formattedNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
     
-    return res.json({ success: true });
+    // Remove leading + if present (we'll add it back)
+    if (formattedNumber.startsWith('+')) {
+      formattedNumber = formattedNumber.substring(1);
+    }
+    
+    // If number doesn't include @c.us, format it properly
+    let chatId: string;
+    if (formattedNumber.includes('@c.us')) {
+      chatId = formattedNumber;
+    } else {
+      // Ensure it's a valid WhatsApp number format
+      chatId = `${formattedNumber}@c.us`;
+    }
+    
+    try {
+      // Try to send the message
+      await client.sendMessage(chatId, message);
+      return res.json({ success: true, message: 'Message sent successfully!' });
+    } catch (sendError: any) {
+      // Provide more helpful error messages
+      const errorMessage = sendError.message || String(sendError);
+      
+      if (errorMessage.includes('Evaluation failed') || errorMessage.includes('not found')) {
+        return res.status(400).json({ 
+          error: 'Contact not found. Make sure the phone number is saved in your WhatsApp contacts and includes country code (e.g., +201234567890)',
+          details: 'The number must be in your WhatsApp contact list. Try saving it first in your phone\'s contacts.'
+        });
+      }
+      
+      if (errorMessage.includes('not registered')) {
+        return res.status(400).json({ 
+          error: 'This phone number is not registered on WhatsApp',
+          details: 'The number you entered is not using WhatsApp.'
+        });
+      }
+      
+      logger.error('Error sending test message:', sendError);
+      return res.status(500).json({ 
+        error: 'Failed to send message',
+        details: errorMessage
+      });
+    }
   } catch (error) {
     logger.error('Error sending test message:', error);
     return res.status(500).json({ error: 'Failed to send test message' });

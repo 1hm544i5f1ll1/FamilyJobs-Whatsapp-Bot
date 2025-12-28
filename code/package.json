@@ -25,6 +25,11 @@
   ],
   "author": "Senior Full-Stack Engineer",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/1hm544i5f1ll1/FamilyJobs-Whatsapp-Bot.git"
+  },
+  "homepage": "https://github.com/1hm544i5f1ll1/FamilyJobs-Whatsapp-Bot#readme",
   "dependencies": {
     "basic-auth": "^2.0.1",
     "cors": "^2.8.5",

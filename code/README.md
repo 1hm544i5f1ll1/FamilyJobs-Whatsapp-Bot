@@ -2,6 +2,8 @@
 
 A bilingual (Arabic/English) WhatsApp Web chatbot with RAG (Retrieval Augmented Generation) capabilities for Family Jobs Egypt - Assiut Branch.
 
+**GitHub Repository:** https://github.com/1hm544i5f1ll1/FamilyJobs-Whatsapp-Bot
+
 ## Features
 
 - 🤖 **Bilingual Support**: Responds in both Arabic and English
@@ -24,8 +26,8 @@ A bilingual (Arabic/English) WhatsApp Web chatbot with RAG (Retrieval Augmented 
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd Chatbot
+   git clone https://github.com/1hm544i5f1ll1/FamilyJobs-Whatsapp-Bot.git
+   cd FamilyJobs-Whatsapp-Bot/code
    ```
 
 2. **Install Node.js dependencies**

@@ -23,6 +23,7 @@ yarn-error.log*
 
 # WhatsApp web auth
 .wwebjs_auth/
+.wwebjs_cache/
 
 # Data (keep sample files but ignore state)
 data/state.json

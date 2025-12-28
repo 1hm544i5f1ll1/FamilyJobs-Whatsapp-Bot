@@ -16,9 +16,9 @@ const AboutTextTab: React.FC = () => {
       // Fetch both languages
       const [responseEn, responseAr] = await Promise.all([
         fetch('/api/admin/about/en', {
-          headers: {
-            'Authorization': 'Basic ' + btoa('admin:change-me')
-          }
+        headers: {
+          'Authorization': 'Basic ' + btoa('admin:change-me')
+        }
         }).catch(() => null),
         fetch('/api/admin/about/ar', {
           headers: {
@@ -95,11 +95,11 @@ Type "events" or "activities" to see upcoming events.`);
           body: JSON.stringify({ content: contentEn })
         }).catch(() => ({ ok: false })),
         fetch('/api/admin/about/ar', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic ' + btoa('admin:change-me')
-          },
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Basic ' + btoa('admin:change-me')
+        },
           body: JSON.stringify({ content: contentAr })
         }).catch(() => ({ ok: false }))
       ]);
@@ -157,17 +157,17 @@ Type "events" or "activities" to see upcoming events.`);
         </div>
 
         {/* Arabic Section */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
             Arabic Content 🇪🇬
-          </label>
-          <textarea
+        </label>
+        <textarea
             value={contentAr}
             onChange={(e) => setContentAr(e.target.value)}
             className="w-full h-80 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             dir="rtl"
             placeholder="أدخل نص حول بالعربية..."
-          />
+        />
         </div>
       </div>
 
@@ -182,13 +182,13 @@ Type "events" or "activities" to see upcoming events.`);
       )}
 
       <div className="flex justify-end">
-        <button
-          onClick={saveAboutText}
-          disabled={saving}
+      <button
+        onClick={saveAboutText}
+        disabled={saving}
           className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50"
-        >
+      >
           {saving ? 'Saving...' : 'Save Both Languages'}
-        </button>
+      </button>
       </div>
     </div>
   );

@@ -166,7 +166,7 @@ router.post('/test-message', async (req, res) => {
     
     try {
       // Try to send the message
-      await client.sendMessage(chatId, message);
+    await client.sendMessage(chatId, message);
       return res.json({ success: true, message: 'Message sent successfully!' });
     } catch (sendError: any) {
       // Provide more helpful error messages
